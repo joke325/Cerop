@@ -25,6 +25,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @version 0.3.0
+ */
+
 #include "cerop/util.hpp"
 
 
@@ -32,7 +36,7 @@ CEROP_NAMESPACE_BEGIN {
 
 RopString Util::GetRopString(const RopObjRef& parent, const int ret, const char*const*const ropStr, const bool freeBuf) {
     Util::CheckError(ret);
-    return RopString(*ropStr!=nullptr? new RopStringT(parent, *ropStr, freeBuf) : nullptr);
+    return RopString(ropStr!=nullptr&&*ropStr!=nullptr? new RopStringT(parent, *ropStr, freeBuf) : nullptr);
 }
 
 RopData Util::GetRopData(const RopObjRef& parent, const int ret, const void*const ropBuf, const size_t bufLen, const bool freeBuf) {

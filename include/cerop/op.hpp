@@ -52,6 +52,12 @@ typedef std::shared_ptr<RopOpEncryptT> RopOpEncrypt;
 class RopVeriSignatureT;
 typedef std::shared_ptr<RopVeriSignatureT> RopVeriSignature;
 
+class RopRecipientT;
+typedef std::shared_ptr<RopRecipientT> RopRecipient;
+
+class RopSymEncT;
+typedef std::shared_ptr<RopSymEncT> RopSymEnc;
+
 class RopOpVerifyT;
 typedef std::shared_ptr<RopOpVerifyT> RopOpVerify;
 
@@ -186,6 +192,39 @@ friend class RopOpVerifyT;
 };
 
 
+class RopRecipientT : public RopObjectT {
+public:
+    virtual ~RopRecipientT();
+
+    // API
+    RopString get_keyid();
+    RopString get_alg();
+
+protected:
+    RopRecipientT(const RopObjRef& parent, const RopHandle rid);
+
+friend class RopOpVerifyT;
+};
+
+
+class RopSymEncT : public RopObjectT {
+public:
+    virtual ~RopSymEncT();
+
+    // API
+    RopString get_cipher();
+    RopString get_aead_alg();
+    RopString get_hash_alg();
+    RopString get_s2k_type();
+    uint32_t get_s2k_iterations();
+
+protected:
+    RopSymEncT(const RopObjRef& parent, const RopHandle rid);
+
+friend class RopOpVerifyT;
+};
+
+
 class RopOpVerifyT : public RopObjectT {
 public:
     virtual ~RopOpVerifyT();
@@ -203,6 +242,13 @@ public:
     void execute();
     RopVeriSignature get_signature_at(size_t idx);
     FileInfoP get_file_info();
+    bool get_protection_info(RopString* mode, RopString* cipher);
+    size_t get_recipient_count();
+    RopRecipient get_used_recipient();
+    RopRecipient get_recipient_at(const size_t idx);
+    size_t get_symenc_count();
+    RopSymEnc get_used_symenc();
+    RopSymEnc get_symenc_at(const size_t idx);
 
 protected:
     RopOpVerifyT(const RopObjRef& parent, const RopHandle vid);

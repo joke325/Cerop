@@ -37,7 +37,7 @@ class Dump : public InputCallBack, public OutputCallBack {
 public:
     void execute(const int argc, const char*const* argv, std::string* json_out);
 
-    virtual size_t ReadCallBack(void *ctx, void *buf, size_t len);
+    virtual bool ReadCallBack(void *ctx, void *buf, size_t len, size_t *read);
     virtual void RCloseCallBack(void *ctx);
     virtual bool WriteCallBack(void *ctx, const void *buf, size_t len);
     virtual void WCloseCallBack(void *ctx, bool discard);

@@ -25,7 +25,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
+#include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <algorithm>
@@ -37,7 +37,7 @@ namespace tech {
         namespace utils {
 
 static std::string Shorten(const char* text, unsigned maxLen = 30) {
-    return std::string(text, std::min<size_t>(maxLen, strlen(text)));
+    return std::string(text, std::min<size_t>(maxLen, std::strlen(text)));
 }
 
 static JsonNode ParseValue(const char** text) {

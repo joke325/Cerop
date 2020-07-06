@@ -101,11 +101,13 @@ public:
     inline const void* getBuf() const noexcept { return buf; }
     inline const uint8_t* getBBuf() const noexcept { return static_cast<const uint8_t*>(buf); }
     inline const size_t getLen() const noexcept { return len; }
+    inline void setClear() noexcept { clear = true; }
 
 protected:
     const void *const buf;
     const size_t len;
     const bool free;
+    bool clear;
 };
 
 typedef std::shared_ptr<RopBufferT> RopBuffer;

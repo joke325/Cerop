@@ -25,6 +25,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @version 0.3.0
+ */
+
 #include <sstream>
 #include <stdexcept>
 #include "load.h"
@@ -48,7 +52,7 @@ RopBind RopBindT::New(const bool checkLibVer) {
 }
 
 RopBindT::RopBindT(const bool checkLibVer) : RopObjectT(RopObject()) {
-    if(checkLibVer && !( CALL(rnp_version()) >= CALL(rnp_version_for(0, 9, 0))))
+    if(checkLibVer && !(CALL(rnp_version()) >= CALL(rnp_version_for(0, 9, 0))) && !(CALL(rnp_version_commit_timestamp)() >= ropid()))
         throw RopError(ROPE::ERROR_LIBVERSION);
 }
 
@@ -56,9 +60,18 @@ RopBindT::~RopBindT() {
     instanceCnt--;
 }
 
+static StringT altHome;
 RopString RopBindT::default_homedir() { API_PROLOG
     char *homedir = nullptr;
-    return Util::GetRopString(me, CALL(rnp_get_default_homedir)(&homedir), &homedir);
+    unsigned err = CALL(rnp_get_default_homedir)(&homedir);
+    if(err == ROPE::ERROR_NOT_SUPPORTED) {
+        if(altHome.length() == 0 && getenv("HOMEDRIVE")) {
+            altHome = StringT(getenv("HOMEDRIVE")) + getenv("HOMEPATH");
+            altHome = altHome + (strchr(altHome.c_str(),'/')?"/":"\\") + ".rnp";
+        }
+        return RopString(new RopStringT(me, altHome.c_str(), false));
+    }
+    return Util::GetRopString(me, err, &homedir);
 }
 String RopBindT::version_string() { API_PROLOG
     const char *version = CALL(rnp_version_string)();
@@ -125,6 +138,15 @@ RopSession RopBindT::create_session(const InString& pubFormat, const InString& s
     rnp_ffi_t ffi = nullptr;
     RET_ROP_OBJECT(RopSession, ffi, CALL(rnp_ffi_create)(&ffi, pubFormat, secFormat));
 }
+void RopBindT::buffer_clear(void *ptr, size_t size) { API_PROLOG
+    CALL(rnp_buffer_clear)(ptr, size);
+}
+void RopBindT::buffer_clear(const String& str) { API_PROLOG
+    if(str) {
+        CALL(rnp_buffer_clear)(&(*str)[0], str->capacity());
+        str->clear();
+    }
+}
 RopInput RopBindT::create_input(const RopDataT& buf, const bool doCopy) { API_PROLOG
     rnp_input_t input = nullptr;
     RET_ROP_OBJECT(RopInput, input, CALL(rnp_input_from_memory)(&input, buf.getBBuf(), buf.getLen(), doCopy));
@@ -134,10 +156,10 @@ RopInput RopBindT::create_input(const InString& path) { API_PROLOG
     RET_ROP_OBJECT(RopInput, input, CALL(rnp_input_from_path)(&input, path));
 }
 
-size_t input_reader(void *app_ctx, void *buf, size_t len) {
+bool input_reader(void *app_ctx, void *buf, size_t len, size_t *read) {
     RopInputT *inp = static_cast<RopInputT*>(app_ctx);
     if(inp != nullptr && inp->inputCB != nullptr)
-        return inp->inputCB->ReadCallBack(inp->inpcbCtx, buf, len);
+        return inp->inputCB->ReadCallBack(inp->inpcbCtx, buf, len, read);
     return 0;
 }
 void input_closer(void *app_ctx) {
@@ -198,6 +220,8 @@ String RopBindT::toString() const {
     msg << "thl = " << (thl!=nullptr? thl->size() : 0) << '\n';
     return String(new StringT(msg.str()));
 }
+
+unsigned RopBindT::ropid() const { return 1592576775; }
 
 const StringT RopBindT::KEYSTORE_GPG(RNP_KEYSTORE_GPG);
 const StringT RopBindT::KEYSTORE_KBX(RNP_KEYSTORE_KBX);

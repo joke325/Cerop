@@ -25,6 +25,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @version 0.3.0
+ */
+
 #include "load.h"
 #include "cerop/error.hpp"
 #include "cerop/util.hpp"
@@ -109,6 +113,9 @@ RopString RopKeyT::curve() { API_PROLOG
 }
 RopString RopKeyT::revocation_reason() { API_PROLOG
     RET_KEY_STRING(result, rnp_key_get_revocation_reason);
+}
+void RopKeyT::set_expiration(const Duration& expiry) { API_PROLOG
+    Util::CheckError(CALL(rnp_key_set_expiration)(HCAST_KEY(handle), Util::TimeDelta2Sec(expiry)));
 }
 bool RopKeyT::is_revoked() { API_PROLOG
     RET_KEY_BOOL(result, rnp_key_is_revoked);
@@ -249,9 +256,17 @@ void RopKeyT::export_key(const RopOutput& output, const bool pub, const bool sec
     flags |= (armored? RNP_KEY_EXPORT_ARMORED : 0);
     Util::CheckError(CALL(rnp_key_export)(HCAST_KEY(handle), HCAST_OUTP(outp), flags));
 }
-void RopKeyT::remove(const bool pub, const bool sec) { API_PROLOG
+void RopKeyT::export_revocation(const RopOutput& output, const InString& hash, const InString& code, const InString& reason) { API_PROLOG
+    RopHandle outp = RopObjectT::getHandle(output);
+    Util::CheckError(CALL(rnp_key_export_revocation)(HCAST_KEY(handle), HCAST_OUTP(outp), 0, hash, code, reason));
+}
+void RopKeyT::revoke(const InString& hash, const InString& code, const InString& reason) { API_PROLOG
+    Util::CheckError(CALL(rnp_key_revoke)(HCAST_KEY(handle), 0, hash, code, reason));
+}
+void RopKeyT::remove(const bool pub, const bool sec, const bool sub) { API_PROLOG
     unsigned flags = (pub? RNP_KEY_REMOVE_PUBLIC : 0);
     flags |= (sec? RNP_KEY_REMOVE_SECRET : 0);
+    flags |= (sub? RNP_KEY_REMOVE_SUBKEYS : 0);
     Util::CheckError(CALL(rnp_key_remove(HCAST_KEY(handle), flags)));
 }
 

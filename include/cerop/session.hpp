@@ -29,6 +29,7 @@
 #define ROP_SESSION_H
 
 #include <memory>
+#include <cstring>
 #include "types.hpp"
 #include "io.hpp"
 #include "key.hpp"
@@ -82,6 +83,7 @@ public:
     inline RopOpVerify op_verify_create(const RopInput& input, const RopInput& signature) {
         return op_verify_create(input, RopOutput(nullptr), signature);
     }
+    String request_password(const RopKey& key, const char* context);
     void load_keys(const InString& format, const RopInput& input, const bool pub = false, const bool sec = false);
     inline void load_keys_public(const InString& format, const RopInput& input) {
         load_keys(format, input, true, false);
@@ -103,17 +105,18 @@ public:
     RopKey generate_key_25519(const InString& userid, const InString& password);
     RopKey generate_key_sm2(const InString& userid, const InString& password);
     RopKey generate_key_ex(const InString& keyAlg, const InString& subAlg, const uint32_t keyBits, const uint32_t subBits, const InString& keyCurve, const InString& subCurve, const InString& userid, const InString& password);
-    RopData import_keys(const RopInput& input, const bool pub = false, const bool sec = false);
-    inline RopData import_keys_public(const RopInput& input) {
-        return import_keys(input, true, false);
+    RopData import_keys(const RopInput& input, const bool pub = false, const bool sec = false, const bool perm = false);
+    inline RopData import_keys_public(const RopInput& input, const bool permissive = false) {
+        return import_keys(input, true, false, permissive);
     }
-    inline RopData import_keys_secret(const RopInput& input) {
-        return import_keys(input, false, true);
+    inline RopData import_keys_secret(const RopInput& input, const bool permissive = false) {
+        return import_keys(input, false, true, permissive);
     }
     void set_pass_provider(SessionPassCallBack* getpasscb, void* getpasscbCtx);
     RopIdIterator identifier_iterator_create(const InString& identifier_type);
     void set_log_fd(const int fd);
     void set_key_provider(SessionKeyCallBack* getkeycb, void* getkeycbCtx);
+    RopString import_signatures(const RopInput& input);
     void save_keys(const InString& format, const RopOutput& output, const bool pub = false, const bool sec = false);
     inline void save_keys_public(const InString& format, const RopOutput& output) {
         save_keys(format, output, true, false);
@@ -155,7 +158,7 @@ friend class RopSessionT;
 
 interface SessionPassCallBack {
     struct Ret {
-        inline Ret(const bool ret, const char* outBuf, const size_t len = 0) : ret(ret), outBuf(new StringT(outBuf, len>0? len : strlen(outBuf))) {}
+        inline Ret(const bool ret, const char* outBuf, const size_t len = 0) : ret(ret), outBuf(new StringT(outBuf, (!outBuf)||len>0? len : std::strlen(outBuf))) {}
         inline Ret(const bool ret, const String& outBuf) : ret(ret), outBuf(outBuf) {}
         bool ret;
         String outBuf;

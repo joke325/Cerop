@@ -8,7 +8,7 @@ This project provides C++11 bindings for the [RNP high performance OpenPGP](http
 
 ## Build Instructions
 
-1. Download, build and install the [RNP OpenPGP library](https://github.com/rnpgp/rnp).
+1. Download, build and install shared version of the [RNP OpenPGP library](https://github.com/rnpgp/rnp).
 
 2. Configure this project.
 

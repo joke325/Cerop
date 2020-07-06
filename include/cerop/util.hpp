@@ -28,7 +28,7 @@
 #ifndef ROP_UTIL_H
 #define ROP_UTIL_H
 
-#include <string.h>
+#include <cstring>
 #include "types.hpp"
 #include "error.hpp"
 
@@ -52,7 +52,7 @@ public:
         Util::CheckError(ret);
         return *val;
     }
-    inline static size_t StrLen(const char* str) noexcept { return str!=nullptr? strlen(str) : 0; }
+    inline static size_t StrLen(const char* str) noexcept { return str!=nullptr? std::strlen(str) : 0; }
     inline static uint32_t Datetime2TS(const Instant& dtime) { 
         return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(dtime.time_since_epoch()).count());
     }

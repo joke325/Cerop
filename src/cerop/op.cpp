@@ -25,6 +25,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @version 0.3.0
+ */
+
 #include "load.h"
 #include "cerop/error.hpp"
 #include "cerop/util.hpp"
@@ -276,7 +280,6 @@ RopVeriSignatureT::RopVeriSignatureT(const RopObjRef& parent, const RopHandle vi
 
 RopVeriSignatureT::~RopVeriSignatureT() {
     if(handle != nullptr) {
-//        Util::CheckError(CALL(rnp_op_encrypt_destroy)(HCAST_OPENC(handle)));
         handle = nullptr;
     }
 }
@@ -303,6 +306,58 @@ Instants RopVeriSignatureT::get_times() { API_PROLOG
     inst->push_back(Instant(Duration(create)));
     inst->push_back(Instant(Duration(expires)));
     return inst;
+}
+
+
+RopRecipientT::RopRecipientT(const RopObjRef& parent, const RopHandle rid) : RopObjectT(parent.lock(), rid) {
+    Attach(rid);
+}
+
+RopRecipientT::~RopRecipientT() {
+    if(handle != nullptr) {
+        handle = nullptr;
+    }
+}
+
+RopString RopRecipientT::get_keyid() { API_PROLOG
+    char *keyid = nullptr;
+    return Util::GetRopString(me, CALL(rnp_recipient_get_keyid)(HCAST_RECIP(handle), &keyid), &keyid);
+}
+RopString RopRecipientT::get_alg() { API_PROLOG
+    char *alg = nullptr;
+    return Util::GetRopString(me, CALL(rnp_recipient_get_alg)(HCAST_RECIP(handle), &alg), &alg);
+}
+
+
+RopSymEncT::RopSymEncT(const RopObjRef& parent, const RopHandle eid) : RopObjectT(parent.lock(), eid) {
+    Attach(eid);
+}
+
+RopSymEncT::~RopSymEncT() {
+    if(handle != nullptr) {
+        handle = nullptr;
+    }
+}
+
+RopString RopSymEncT::get_cipher() { API_PROLOG
+    char *cipher = nullptr;
+    return Util::GetRopString(me, CALL(rnp_symenc_get_cipher)(HCAST_SENC(handle), &cipher), &cipher);
+}
+RopString RopSymEncT::get_aead_alg() { API_PROLOG
+    char *alg = nullptr;
+    return Util::GetRopString(me, CALL(rnp_symenc_get_aead_alg)(HCAST_SENC(handle), &alg), &alg);
+}
+RopString RopSymEncT::get_hash_alg() { API_PROLOG
+    char *alg = nullptr;
+    return Util::GetRopString(me, CALL(rnp_symenc_get_hash_alg)(HCAST_SENC(handle), &alg), &alg);
+}
+RopString RopSymEncT::get_s2k_type() { API_PROLOG
+    char *type = nullptr;
+    return Util::GetRopString(me, CALL(rnp_symenc_get_s2k_type)(HCAST_SENC(handle), &type), &type);
+}
+uint32_t RopSymEncT::get_s2k_iterations() { API_PROLOG
+    uint32_t iterations = false;
+    return Util::GetPrimVal<uint32_t>(CALL(rnp_symenc_get_s2k_iterations)(HCAST_SENC(handle), &iterations), &iterations);
 }
 
 
@@ -337,6 +392,40 @@ RopOpVerifyT::FileInfoP RopOpVerifyT::get_file_info() { API_PROLOG
     uint32_t mtime = 0;
     RopString fname = Util::GetRopString(me, CALL(rnp_op_verify_get_file_info)(HCAST_OPVER(handle), &filename, &mtime), &filename);
     return RopOpVerifyT::FileInfoP(new RopOpVerifyT::FileInfo((const char*)*fname, Instant(Duration(mtime))));
+}
+bool RopOpVerifyT::get_protection_info(RopString* mode, RopString* cipher) { API_PROLOG
+    char *mod = nullptr, *cip = nullptr;
+    char **pmod = (mode? &mod : nullptr), **pcip = (cipher? &cip : nullptr);
+    bool valid = false;
+    RopString modS = Util::GetRopString(me, CALL(rnp_op_verify_get_protection_info)(HCAST_OPVER(handle), pmod, pcip, &valid), pmod);
+    RopString cipS = Util::GetRopString(me, ROPE::SUCCESS, pcip);
+    if(mode) *mode = modS;
+    if(cipher) *cipher = cipS;
+    return valid;
+}
+size_t RopOpVerifyT::get_recipient_count() { API_PROLOG
+    size_t count = false;
+    return Util::GetPrimVal<size_t>(CALL(rnp_op_verify_get_recipient_count)(HCAST_OPVER(handle), &count), &count);
+}
+RopRecipient RopOpVerifyT::get_used_recipient() { API_PROLOG
+    rnp_recipient_handle_t hnd = nullptr;
+    RET_ROP_OBJECT(RopRecipient, hnd, CALL(rnp_op_verify_get_used_recipient)(HCAST_OPVER(handle), &hnd));
+}
+RopRecipient RopOpVerifyT::get_recipient_at(const size_t idx) { API_PROLOG
+    rnp_recipient_handle_t hnd = nullptr;
+    RET_ROP_OBJECT(RopRecipient, hnd, CALL(rnp_op_verify_get_recipient_at)(HCAST_OPVER(handle), idx, &hnd));
+}
+size_t RopOpVerifyT::get_symenc_count() { API_PROLOG
+    size_t count = false;
+    return Util::GetPrimVal<size_t>(CALL(rnp_op_verify_get_symenc_count)(HCAST_OPVER(handle), &count), &count);
+}
+RopSymEnc RopOpVerifyT::get_used_symenc() { API_PROLOG
+    rnp_symenc_handle_t hnd = nullptr;
+    RET_ROP_OBJECT(RopSymEnc, hnd, CALL(rnp_op_verify_get_used_symenc)(HCAST_OPVER(handle), &hnd));
+}
+RopSymEnc RopOpVerifyT::get_symenc_at(const size_t idx) { API_PROLOG
+    rnp_symenc_handle_t hnd = nullptr;
+    RET_ROP_OBJECT(RopSymEnc, hnd, CALL(rnp_op_verify_get_symenc_at)(HCAST_OPVER(handle), idx, &hnd));
 }
 
 } CEROP_NAMESPACE_END

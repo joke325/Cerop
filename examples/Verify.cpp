@@ -25,6 +25,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Inspired by https://github.com/rnpgp/rnp/blob/master/src/examples/verify.c
+
 #include <iostream>
 #include <exception>
 #include "Verify.hpp"
@@ -76,9 +78,9 @@ void Verify::verify(RopBind& rop) {
 
             // now check signatures and get some info about them
             err_desc = "Failed to get signature count";
-            int sigcount = verify->signature_count();
+            size_t sigcount = verify->signature_count();
 
-            for(int idx = 0; idx < sigcount; idx++) {
+            for(size_t idx = 0; idx < sigcount; idx++) {
                 err_desc = std::string("Failed to get signature ") + std::to_string(idx);
                 RopVeriSignature sig = verify->get_signature_at(idx);
 

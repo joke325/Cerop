@@ -25,7 +25,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
+/**
+ * @version 0.3.0
+ */
+
+#include <cstring>
 #include <cstdlib>
 #include <iostream>
 #include "load.h"
@@ -81,15 +85,18 @@ void RopObjectT::ExceptionCheck() {
 
 
 RopBufferT::RopBufferT(const RopObjRef& parent, const void*const buf, const size_t len, const bool free) noexcept : 
-    RopObjectT(parent.lock()), buf(buf), len(len), free(free) {}
+    RopObjectT(parent.lock()), buf(buf), len(len), free(free), clear(false) {}
 
 RopBufferT::RopBufferT(const RopObjRef& parent, const char*const buf, const bool free) noexcept : 
-    RopObjectT(parent.lock()), buf(buf), len(buf!=nullptr? strlen(buf) : 0), free(free) {}
+    RopObjectT(parent.lock()), buf(buf), len(buf!=nullptr? std::strlen(buf) : 0), free(free), clear(false) {}
 
 RopBufferT::~RopBufferT() { 
-    if(free) 
+    if(free || clear) 
         try {
-            CALL(rnp_buffer_destroy)(const_cast<void*>(buf));
+            if(clear) 
+                CALL(rnp_buffer_clear)(const_cast<void*>(buf), len);
+            if(free) 
+                CALL(rnp_buffer_destroy)(const_cast<void*>(buf));
         } catch(std::exception&) { ForwardException(NEW_THROWED()); } 
 }
 

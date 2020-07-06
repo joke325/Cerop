@@ -25,7 +25,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
+/**
+ * @version 0.3.0
+ */
+
+#include <cstring>
 #include <algorithm>
 #include "load.h"
 #include "cerop/util.hpp"
@@ -112,19 +116,27 @@ RopOpVerify RopSessionT::op_verify_create(const RopInput& input, const RopOutput
     RET_ROP_OBJECT2(RopOpVerify, op, ret, DEPEND_LIST(input, output));
 }
 
+String RopSessionT::request_password(const RopKey& key, const char* context) { API_PROLOG
+    char *password = nullptr;
+    RopHandle hkey = RopObjectT::getHandle(key);
+    Util::CheckError(CALL(rnp_request_password)(HCAST_FFI(handle), HCAST_KEY(hkey), context, &password));
+    String outp(password!=nullptr? new StringT(password) : nullptr);
+    if(password != nullptr)
+        CALL(rnp_buffer_clear)(password, Util::StrLen(password));
+    return outp;
+}
+
 void RopSessionT::load_keys(const InString& format, const RopInput& input, const bool pub, const bool sec) { API_PROLOG
     RopHandle inp = RopObjectT::getHandle(input);
     unsigned flags = (pub? RNP_LOAD_SAVE_PUBLIC_KEYS : 0);
     flags |= (sec? RNP_LOAD_SAVE_SECRET_KEYS : 0);
-    unsigned ret = CALL(rnp_load_keys)(HCAST_FFI(handle), format, HCAST_INP(inp), flags);
-    Util::CheckError(ret);
+    Util::CheckError(CALL(rnp_load_keys)(HCAST_FFI(handle), format, HCAST_INP(inp), flags));
 }
 
 void RopSessionT::unload_keys(const bool pub, const bool sec) { API_PROLOG
     unsigned flags = (pub? RNP_KEY_UNLOAD_PUBLIC : 0);
     flags |= (sec? RNP_KEY_UNLOAD_SECRET : 0);
-    unsigned ret = CALL(rnp_unload_keys)(HCAST_FFI(handle), flags);
-    Util::CheckError(ret);
+    Util::CheckError(CALL(rnp_unload_keys)(HCAST_FFI(handle), flags));
 }
 
 RopKey RopSessionT::locate_key(const InString& identifier_type, const InString& identifier) { API_PROLOG
@@ -155,11 +167,12 @@ RopKey RopSessionT::generate_key_ex(const InString& keyAlg, const InString& subA
     rnp_key_handle_t key = nullptr;
     RET_ROP_OBJECT(RopKey, key, CALL(rnp_generate_key_ex)(HCAST_FFI(handle), keyAlg, subAlg, keyBits, subBits, keyCurve, subCurve, userid, password, &key));
 }
-RopData RopSessionT::import_keys(const RopInput& input, const bool pub, const bool sec) { API_PROLOG
+RopData RopSessionT::import_keys(const RopInput& input, const bool pub, const bool sec, const bool perm) { API_PROLOG
     char *results = nullptr;
     RopHandle inp = RopObjectT::getHandle(input);
     unsigned flags = (pub? RNP_LOAD_SAVE_PUBLIC_KEYS : 0);
     flags |= (sec? RNP_LOAD_SAVE_SECRET_KEYS : 0);
+    flags |= (perm? RNP_LOAD_SAVE_PERMISSIVE : 0);
     unsigned ret = CALL(rnp_import_keys)(HCAST_FFI(handle), HCAST_INP(inp), flags, &results);
     return Util::GetRopData(me, ret, results, Util::StrLen(results));
 }
@@ -222,12 +235,16 @@ void RopSessionT::set_key_provider(SessionKeyCallBack* keyProvider, void* getkey
     this->keycbCtx = getkeycbCtx;
     Util::CheckError(CALL(rnp_ffi_set_key_provider)(HCAST_FFI(handle), reinterpret_cast<rnp_get_key_cb>(key_cb), keyProvider!=nullptr? this : nullptr));
 }
+RopString RopSessionT::import_signatures(const RopInput& input) { API_PROLOG
+    char *results = nullptr;
+    RopHandle inp = RopObjectT::getHandle(input);
+    return Util::GetRopString(me, CALL(rnp_import_signatures)(HCAST_FFI(handle), HCAST_INP(inp), 0, &results), &results);
+}
 void RopSessionT::save_keys(const InString& format, const RopOutput& output, const bool pub, const bool sec) { API_PROLOG
     RopHandle outp = RopObjectT::getHandle(output);
     unsigned flags = (pub? RNP_LOAD_SAVE_PUBLIC_KEYS : 0);
     flags |= (sec? RNP_LOAD_SAVE_SECRET_KEYS : 0);
-    unsigned ret = CALL(rnp_save_keys)(HCAST_FFI(handle), format, HCAST_OUTP(outp), flags);
-    Util::CheckError(ret);
+    Util::CheckError(CALL(rnp_save_keys)(HCAST_FFI(handle), format, HCAST_OUTP(outp), flags));
 }
 RopData RopSessionT::generate_key_json(const RopDataT& json) { API_PROLOG
     char *results = nullptr;
@@ -237,8 +254,7 @@ RopData RopSessionT::generate_key_json(const RopDataT& json) { API_PROLOG
 void RopSessionT::decrypt(const RopInput& input, const RopOutput& output) { API_PROLOG
     RopHandle inp = RopObjectT::getHandle(input);
     RopHandle outp = RopObjectT::getHandle(output);
-    unsigned ret = CALL(rnp_decrypt)(HCAST_FFI(handle), HCAST_INP(inp), HCAST_OUTP(outp));
-    Util::CheckError(ret);
+    Util::CheckError(CALL(rnp_decrypt)(HCAST_FFI(handle), HCAST_INP(inp), HCAST_OUTP(outp)));
 }
 
 
@@ -249,7 +265,7 @@ RopIdIteratorT::RopIdIteratorT(const RopObjRef& parent, const RopHandle iid) : R
 RopIdIteratorT::~RopIdIteratorT() {
     if(handle != nullptr) {
         try {
-            Util::CheckError(CALL(rnp_op_verify_destroy)(HCAST_OPVER(handle)));
+            Util::CheckError(CALL(rnp_identifier_iterator_destroy)(HCAST_IDIT(handle)));
         } catch(std::exception&) {
             ForwardException(NEW_THROWED());
         }

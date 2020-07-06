@@ -72,6 +72,8 @@ public:
     RopString detect_key_format(const RopDataT& buf);
     size_t calculate_iterations(const InString& hash, const size_t msec);
     RopSession create_session(const InString& pubFormat, const InString& secFormat);
+    void buffer_clear(void *ptr, size_t size);
+    void buffer_clear(const String& str);
 
     RopInput create_input(const RopDataT& buf, const bool doCopy);
     RopInput create_input(const InString& path);
@@ -87,6 +89,7 @@ public:
      * Describes this object
      */
     String toString() const;
+    unsigned ropid() const;
 
     // Constants
 

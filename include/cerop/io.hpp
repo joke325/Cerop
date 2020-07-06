@@ -41,7 +41,7 @@ class RopOutputT;
 typedef std::shared_ptr<RopOutputT> RopOutput;
 
 interface InputCallBack {
-    virtual size_t ReadCallBack(void *ctx, void *buf, size_t len) = 0;
+    virtual bool ReadCallBack(void *ctx, void *buf, size_t len, size_t *read) = 0;
     virtual void RCloseCallBack(void *ctx) = 0;
 };
 
@@ -89,7 +89,7 @@ protected:
     void *inpcbCtx;
 
 friend class RopBindT;
-friend size_t input_reader(void*, void*, size_t);
+friend bool input_reader(void*, void*, size_t, size_t *);
 friend void input_closer(void*);
 };
 

@@ -25,6 +25,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Inspired by https://github.com/rnpgp/rnp/blob/master/src/examples/sign.c
+
 #include <iostream>
 #include <exception>
 #include "Sign.hpp"

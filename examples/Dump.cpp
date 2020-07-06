@@ -25,6 +25,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Inspired by https://github.com/rnpgp/rnp/blob/master/src/examples/dump.c
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -34,9 +36,11 @@
 
 
 // stdin reader
-size_t Dump::ReadCallBack(void *ctx, void *buf, size_t len) {
-//    return read(STDIN_FILENO, buf, len);
-    return fread(buf, 1, len, stdin);
+bool Dump::ReadCallBack(void *ctx, void *buf, size_t len, size_t *read) {
+    size_t rd = std::fread(buf, 1, len, stdin);
+    if(read != nullptr)
+        *read = rd;
+    return std::ferror(stdin) == 0;
 }
 void Dump::RCloseCallBack(void *ctx) {}
     
@@ -82,7 +86,7 @@ void Dump::execute(const int argc, const char*const* argv, std::string* json_out
     std::vector<std::string> opts, args;
     std::string optList("dmgjh");
     for(int idx = 1; idx < argc; idx++)
-        if(strlen(argv[idx]) >= 2 && argv[idx][0] == '-' && optList.find(argv[idx][1]) != std::string::npos)
+        if(std::strlen(argv[idx]) >= 2 && argv[idx][0] == '-' && optList.find(argv[idx][1]) != std::string::npos)
             opts.push_back(argv[idx]);
         else
             args.push_back(argv[idx]);

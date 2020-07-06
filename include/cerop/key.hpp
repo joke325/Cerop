@@ -73,6 +73,7 @@ public:
     RopString primary_uid();
     RopString curve();
     RopString revocation_reason();
+    void set_expiration(const Duration& expiry);
     bool is_revoked();
     bool is_superseded();
     bool is_compromised();
@@ -113,12 +114,14 @@ public:
     inline void export_secret(const RopOutput& output, const bool subkey = false, const bool armored = false) {
         return export_key(output, false, true, subkey, armored);
     }
-    void remove(const bool pub = false, const bool sec = false);
-    inline void remove_public() {
-        remove(true, false);
+    void export_revocation(const RopOutput& output, const InString& hash, const InString& code, const InString& reason);
+    void revoke(const InString& hash, const InString& code, const InString& reason);
+    void remove(const bool pub = false, const bool sec = false, const bool sub = false);
+    inline void remove_public(const bool subkeys = false) {
+        remove(true, false, subkeys);
     }
-    inline void remove_secret() {
-        remove(false, true);
+    inline void remove_secret(const bool subkeys = false) {
+        remove(false, true, subkeys);
     }
 
 protected:
