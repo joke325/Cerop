@@ -48,9 +48,14 @@ public:
 
     // API
 
+    uint32_t get_type();
+    RopData get_data();
+    bool is_primary();
+    bool is_valid();
     size_t signature_count();
     bool is_revoked();
     RopSign get_signature_at(const size_t idx);
+    RopSign get_revocation_signature();
 
 protected:
     RopUidHandleT(const RopObjRef& parent, const RopHandle uid);
@@ -68,17 +73,25 @@ public:
     RopString keyid();
     RopString alg();
     RopString primary_grip();
+    RopString primary_fprint();
     RopString fprint();
     RopString grip();
     RopString primary_uid();
     RopString curve();
     RopString revocation_reason();
     void set_expiration(const Duration& expiry);
+    bool is_valid();
+    Instant valid_till();
     bool is_revoked();
     bool is_superseded();
     bool is_compromised();
     bool is_retired();
     bool is_locked();
+    RopString protection_type();
+    RopString protection_mode();
+    RopString protection_cipher();
+    RopString protection_hash();
+    size_t protection_iterations();
     bool is_protected();
     bool is_primary();
     bool is_sub();
@@ -107,6 +120,7 @@ public:
     void add_uid(const InString& uid, const InString& hash, const Instant& expiration, const uint8_t keyFlags, const bool primary);
     RopKey get_subkey_at(const size_t idx);
     RopSign get_signature_at(const size_t idx);
+    RopSign get_revocation_signature();
     void export_key(const RopOutput& output, const bool pub = false, const bool sec = false, const bool subkey = false, const bool armored = false);
     inline void export_public(const RopOutput& output, const bool subkey = false, const bool armored = false) {
         return export_key(output, true, false, subkey, armored);
@@ -114,6 +128,7 @@ public:
     inline void export_secret(const RopOutput& output, const bool subkey = false, const bool armored = false) {
         return export_key(output, false, true, subkey, armored);
     }
+    void export_autocrypt(const RopKey& subkey, const InString& uid, const RopOutput& output);
     void export_revocation(const RopOutput& output, const InString& hash, const InString& code, const InString& reason);
     void revoke(const InString& hash, const InString& code, const InString& reason);
     void remove(const bool pub = false, const bool sec = false, const bool sub = false);

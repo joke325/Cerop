@@ -35,13 +35,15 @@
 CEROP_NAMESPACE_BEGIN {
 
 RopString Util::GetRopString(const RopObjRef& parent, const int ret, const char*const*const ropStr, const bool freeBuf) {
+    RopString str(ropStr!=nullptr&&*ropStr!=nullptr? new RopStringT(parent, *ropStr, freeBuf) : nullptr);
     Util::CheckError(ret);
-    return RopString(ropStr!=nullptr&&*ropStr!=nullptr? new RopStringT(parent, *ropStr, freeBuf) : nullptr);
+    return str;
 }
 
 RopData Util::GetRopData(const RopObjRef& parent, const int ret, const void*const ropBuf, const size_t bufLen, const bool freeBuf) {
+    RopData data(ropBuf!=nullptr? new RopDataT(parent, ropBuf, bufLen, freeBuf) : nullptr);
     Util::CheckError(ret);
-    return RopData(ropBuf!=nullptr? new RopDataT(parent, ropBuf, bufLen, freeBuf) : nullptr);
+    return data;
 }
  
 } CEROP_NAMESPACE_END

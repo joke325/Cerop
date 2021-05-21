@@ -403,6 +403,11 @@ bool RopOpVerifyT::get_protection_info(RopString* mode, RopString* cipher) { API
     if(cipher) *cipher = cipS;
     return valid;
 }
+RopOpVerifyT::ProtectionInfo RopOpVerifyT::get_protection_info() {
+    RopOpVerifyT::ProtectionInfo info;
+    info.valid = get_protection_info(&info.mode, &info.cipher);
+    return info;
+}
 size_t RopOpVerifyT::get_recipient_count() { API_PROLOG
     size_t count = false;
     return Util::GetPrimVal<size_t>(CALL(rnp_op_verify_get_recipient_count)(HCAST_OPVER(handle), &count), &count);

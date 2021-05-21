@@ -46,10 +46,12 @@ public:
 
     // API
 
+    RopString get_type();
     RopString alg();
     RopString hash_alg();
     Instant creation();
     RopString keyid();
+    void is_valid();
     RopKey get_signer();
     RopData to_json(const bool mpi = false, const bool raw = false, const bool grip = false);
 

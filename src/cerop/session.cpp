@@ -26,7 +26,7 @@
  */
 
 /**
- * @version 0.3.0
+ * @version 0.14.0
  */
 
 #include <cstring>
@@ -167,14 +167,16 @@ RopKey RopSessionT::generate_key_ex(const InString& keyAlg, const InString& subA
     rnp_key_handle_t key = nullptr;
     RET_ROP_OBJECT(RopKey, key, CALL(rnp_generate_key_ex)(HCAST_FFI(handle), keyAlg, subAlg, keyBits, subBits, keyCurve, subCurve, userid, password, &key));
 }
-RopData RopSessionT::import_keys(const RopInput& input, const bool pub, const bool sec, const bool perm) { API_PROLOG
+RopData RopSessionT::import_keys(const RopInput& input, const bool pub, const bool sec, const bool perm, bool sngl) { API_PROLOG
     char *results = nullptr;
     RopHandle inp = RopObjectT::getHandle(input);
     unsigned flags = (pub? RNP_LOAD_SAVE_PUBLIC_KEYS : 0);
     flags |= (sec? RNP_LOAD_SAVE_SECRET_KEYS : 0);
     flags |= (perm? RNP_LOAD_SAVE_PERMISSIVE : 0);
+    flags |= (sngl? RNP_LOAD_SAVE_SINGLE : 0);
     unsigned ret = CALL(rnp_import_keys)(HCAST_FFI(handle), HCAST_INP(inp), flags, &results);
-    return Util::GetRopData(me, ret, results, Util::StrLen(results));
+    RopData rd = Util::GetRopData(me, ret!=ROPE::ERROR_EOF? ret : ROPE::SUCCESS, results, Util::StrLen(results));
+    return ret!=ROPE::ERROR_EOF? rd : RopData(nullptr);
 }
 
 bool password_cb(void* ffi_, void* app_ctx, void* key_, const char* pgp_context, char buf[], size_t buf_len) {

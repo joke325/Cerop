@@ -26,7 +26,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(Cerop VERSION 0.21 DESCRIPTION "C++ Bindings for RNP" LANGUAGES C CXX)
+project(Cerop VERSION 0.14 DESCRIPTION "C++ Bindings for RNP" LANGUAGES C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)

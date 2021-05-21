@@ -132,6 +132,10 @@ public:
     static const StringT ALG_PLAINTEXT;
     static const StringT ALG_CRC24;
 
+    // User id type
+    static const int USER_ID;
+    static const int USER_ATTR;
+
 protected:
  
     /** 

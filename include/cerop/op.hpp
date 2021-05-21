@@ -235,6 +235,12 @@ public:
         Instant mtime;
     };
     typedef std::shared_ptr<FileInfo> FileInfoP;
+    struct ProtectionInfo {
+        RopString mode;
+        RopString cipher;
+        bool valid;
+        inline ProtectionInfo() { valid = false; }
+    };
     
     // API
 
@@ -243,6 +249,7 @@ public:
     RopVeriSignature get_signature_at(size_t idx);
     FileInfoP get_file_info();
     bool get_protection_info(RopString* mode, RopString* cipher);
+    ProtectionInfo get_protection_info();
     size_t get_recipient_count();
     RopRecipient get_used_recipient();
     RopRecipient get_recipient_at(const size_t idx);

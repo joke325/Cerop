@@ -80,6 +80,7 @@ public:
     void enarmor(const RopOutput& output, const InString& type);
     void dearmor(const RopOutput& output);
     RopString guess_contents();
+    void output_pipe(const RopOutput& output);
     
 protected:
     RopInputT(const RopObjRef& parent, const RopHandle iid);
@@ -103,6 +104,7 @@ public:
     RopOutput output_to_armor(const InString& type);
     RopData memory_get_buf(const bool doCopy);
     size_t write(const RopDataT& data);
+    void armor_set_line_length(const size_t llen);
 
 protected:
     RopOutputT(const RopObjRef& parent, const RopHandle oid);

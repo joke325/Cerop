@@ -26,7 +26,7 @@
  */
 
 /**
- * @version 0.2.1
+ * @version 0.14.0
  */
 
 #include "load.h"
@@ -83,7 +83,9 @@ RopString RopInputT::guess_contents() { API_PROLOG
     char *contents = nullptr;
     return Util::GetRopString(me, CALL(rnp_guess_contents)(HCAST_INP(handle), &contents), &contents);
 }
-
+void RopInputT::output_pipe(const RopOutput& output) { API_PROLOG
+    Util::CheckError(CALL(rnp_output_pipe)(HCAST_INP(handle), HCAST_OUTP(output->getHandle())));
+}
 
 RopOutputT::RopOutputT(const RopObjRef& parent, const RopHandle oid) : RopObjectT(parent.lock()) {
     Attach(oid);
@@ -123,6 +125,10 @@ size_t RopOutputT::write(const RopDataT& data) { API_PROLOG
     size_t written = 0;
     Util::CheckError(CALL(rnp_output_write)(HCAST_OUTP(handle), data.getBuf(), data.getLen(), &written));
     return written;
+}
+
+void RopOutputT::armor_set_line_length(const size_t llen) { API_PROLOG
+    Util::CheckError(CALL(rnp_output_armor_set_line_length)(HCAST_OUTP(handle), llen));
 }
 
 } CEROP_NAMESPACE_END

@@ -26,7 +26,7 @@
  */
 
 /**
- * @version 0.2.1
+ * @version 0.14.0
  */
 
 #include "load.h"
@@ -54,6 +54,10 @@ RopSignT::~RopSignT() {
 
 }
 
+RopString RopSignT::get_type() { API_PROLOG
+    char *type = nullptr;
+    return Util::GetRopString(me, CALL(rnp_signature_get_type)(HCAST_SIG(handle), &type), &type);
+}
 RopString RopSignT::alg() { API_PROLOG
     char *alg = nullptr;
     return Util::GetRopString(me, CALL(rnp_signature_get_alg)(HCAST_SIG(handle), &alg), &alg);
@@ -70,6 +74,9 @@ Instant RopSignT::creation() { API_PROLOG
 RopString RopSignT::keyid() { API_PROLOG
     char *result = nullptr;
     return Util::GetRopString(me, CALL(rnp_signature_get_keyid)(HCAST_SIG(handle), &result), &result);
+}
+void RopSignT::is_valid() { API_PROLOG
+    Util::CheckError(CALL(rnp_signature_is_valid)(HCAST_SIG(handle), 0));
 }
 RopKey RopSignT::get_signer() { API_PROLOG
     rnp_key_handle_t key = nullptr;

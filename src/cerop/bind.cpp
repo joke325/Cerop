@@ -26,7 +26,7 @@
  */
 
 /**
- * @version 0.3.0
+ * @version 0.14.0
  */
 
 #include <sstream>
@@ -221,7 +221,7 @@ String RopBindT::toString() const {
     return String(new StringT(msg.str()));
 }
 
-unsigned RopBindT::ropid() const { return 1592576775; }
+unsigned RopBindT::ropid() const { return 1610638124; }
 
 const StringT RopBindT::KEYSTORE_GPG(RNP_KEYSTORE_GPG);
 const StringT RopBindT::KEYSTORE_KBX(RNP_KEYSTORE_KBX);
@@ -260,6 +260,9 @@ const StringT RopBindT::ALG_ASYM_EDDSA(RNP_ALGNAME_EDDSA);
 const StringT RopBindT::ALG_ASYM_SM2(RNP_ALGNAME_SM2);
 const StringT RopBindT::ALG_PLAINTEXT(RNP_ALGNAME_PLAINTEXT);
 const StringT RopBindT::ALG_CRC24(RNP_ALGNAME_CRC24);
+
+const int RopBindT::USER_ID = 1;
+const int RopBindT::USER_ATTR = 2;
 
 } CEROP_NAMESPACE_END
 

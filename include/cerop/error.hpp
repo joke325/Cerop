@@ -101,6 +101,7 @@ public:
     static const unsigned ERROR_SIGNING_FAILED;
     static const unsigned ERROR_NO_SIGNATURES_FOUND;
     static const unsigned ERROR_SIGNATURE_EXPIRED;
+    static const unsigned ERROR_VERIFICATION_FAILED;
 
     // Parsing
     static const unsigned ERROR_NOT_ENOUGH_DATA;

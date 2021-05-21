@@ -26,7 +26,7 @@
  */
 
 /**
- * @version 0.3.0
+ * @version 0.14.0
  */
 
 #include "load.h"
@@ -52,6 +52,24 @@ RopUidHandleT::~RopUidHandleT() {
     }
 }
 
+uint32_t RopUidHandleT::get_type() { API_PROLOG
+    uint32_t type = 0;
+    return Util::GetPrimVal<uint32_t>(CALL(rnp_uid_get_type)(HCAST_UID(handle), &type), &type);
+}
+RopData RopUidHandleT::get_data() { API_PROLOG
+    uint8_t *buf = nullptr;
+    size_t buf_len = 0;
+    unsigned ret = CALL(rnp_uid_get_data)(HCAST_UID(handle), reinterpret_cast<void**>(&buf), &buf_len);
+    return Util::GetRopData(me, ret, buf, buf_len);
+}
+bool RopUidHandleT::is_primary() { API_PROLOG
+    bool result = false;
+    return Util::GetPrimVal<bool>(CALL(rnp_uid_is_primary)(HCAST_UID(handle), &result), &result);
+}
+bool RopUidHandleT::is_valid() { API_PROLOG
+    bool result = false;
+    return Util::GetPrimVal<bool>(CALL(rnp_uid_is_valid)(HCAST_UID(handle), &result), &result);
+}
 size_t RopUidHandleT::signature_count() { API_PROLOG
     size_t count = 0;
     return Util::GetPrimVal<size_t>(CALL(rnp_uid_get_signature_count)(HCAST_UID(handle), &count), &count);
@@ -63,6 +81,10 @@ bool RopUidHandleT::is_revoked() { API_PROLOG
 RopSign RopUidHandleT::get_signature_at(const size_t idx) { API_PROLOG
     rnp_signature_handle_t sig = nullptr;
     RET_ROP_OBJECT(RopSign, sig, CALL(rnp_uid_get_signature_at)(HCAST_UID(handle), idx, &sig));
+}
+RopSign RopUidHandleT::get_revocation_signature() { API_PROLOG
+    rnp_signature_handle_t sig = nullptr;
+    RET_ROP_OBJECT(RopSign, sig, CALL(rnp_uid_get_revocation_signature)(HCAST_UID(handle), &sig));
 }
 
 RopKeyT::RopKeyT(const RopObjRef& parent, const RopHandle kid) : RopObjectT(parent.lock()) {
@@ -99,6 +121,9 @@ RopString RopKeyT::alg() { API_PROLOG
 RopString RopKeyT::primary_grip() { API_PROLOG
     RET_KEY_STRING(grip, rnp_key_get_primary_grip);
 }
+RopString RopKeyT::primary_fprint() { API_PROLOG
+    RET_KEY_STRING(grip, rnp_key_get_primary_fprint);
+}
 RopString RopKeyT::fprint() { API_PROLOG
     RET_KEY_STRING(fprint, rnp_key_get_fprint);
 }
@@ -117,6 +142,19 @@ RopString RopKeyT::revocation_reason() { API_PROLOG
 void RopKeyT::set_expiration(const Duration& expiry) { API_PROLOG
     Util::CheckError(CALL(rnp_key_set_expiration)(HCAST_KEY(handle), Util::TimeDelta2Sec(expiry)));
 }
+bool RopKeyT::is_valid() { API_PROLOG
+    RET_KEY_BOOL(result, rnp_key_is_valid);
+}
+Instant RopKeyT::valid_till() { API_PROLOG
+    uint32_t dt = 0;
+    Util::GetPrimVal<uint32_t>(CALL(rnp_key_valid_till)(HCAST_KEY(handle), &dt), &dt);
+    Instant dtime = Instant(Duration(dt));
+    if(dt == 0)
+        dtime = Instant::min();
+    else if(dt == 0xffffffffl)
+        dtime = Instant::max();
+    return dtime;
+}
 bool RopKeyT::is_revoked() { API_PROLOG
     RET_KEY_BOOL(result, rnp_key_is_revoked);
 }
@@ -131,6 +169,21 @@ bool RopKeyT::is_retired() { API_PROLOG
 }
 bool RopKeyT::is_locked() { API_PROLOG
     RET_KEY_BOOL(result, rnp_key_is_locked);
+}
+RopString RopKeyT::protection_type() { API_PROLOG
+    RET_KEY_STRING(curve, rnp_key_get_protection_type);
+}
+RopString RopKeyT::protection_mode() { API_PROLOG
+    RET_KEY_STRING(curve, rnp_key_get_protection_mode);
+}
+RopString RopKeyT::protection_cipher() { API_PROLOG
+    RET_KEY_STRING(curve, rnp_key_get_protection_cipher);
+}
+RopString RopKeyT::protection_hash() { API_PROLOG
+    RET_KEY_STRING(curve, rnp_key_get_protection_hash);
+}
+size_t RopKeyT::protection_iterations() { API_PROLOG
+    RET_KEY_SIZE(count, rnp_key_get_protection_iterations);
 }
 bool RopKeyT::is_protected() { API_PROLOG
     RET_KEY_BOOL(result, rnp_key_is_protected);
@@ -248,6 +301,10 @@ RopSign RopKeyT::get_signature_at(const size_t idx) { API_PROLOG
     rnp_signature_handle_t sig = nullptr;
     RET_ROP_OBJECT(RopSign, sig, CALL(rnp_key_get_signature_at(HCAST_KEY(handle), idx, &sig)));
 }
+RopSign RopKeyT::get_revocation_signature() { API_PROLOG
+    rnp_signature_handle_t sig = nullptr;
+    RET_ROP_OBJECT(RopSign, sig, CALL(rnp_key_get_revocation_signature(HCAST_KEY(handle), &sig)));
+}
 void RopKeyT::export_key(const RopOutput& output, const bool pub, const bool sec, const bool subkey, const bool armored) { API_PROLOG
     RopHandle outp = RopObjectT::getHandle(output);
     unsigned flags = (pub? RNP_KEY_EXPORT_PUBLIC : 0);
@@ -255,6 +312,11 @@ void RopKeyT::export_key(const RopOutput& output, const bool pub, const bool sec
     flags |= (subkey? RNP_KEY_EXPORT_SUBKEYS : 0);
     flags |= (armored? RNP_KEY_EXPORT_ARMORED : 0);
     Util::CheckError(CALL(rnp_key_export)(HCAST_KEY(handle), HCAST_OUTP(outp), flags));
+}
+void RopKeyT::export_autocrypt(const RopKey& subkey, const InString& uid, const RopOutput& output) { API_PROLOG
+    RopHandle subk = RopObjectT::getHandle(subkey);
+    RopHandle outp = RopObjectT::getHandle(output);
+    Util::CheckError(CALL(rnp_key_export_autocrypt)(HCAST_KEY(handle), HCAST_KEY(subk), uid, HCAST_OUTP(outp), 0));
 }
 void RopKeyT::export_revocation(const RopOutput& output, const InString& hash, const InString& code, const InString& reason) { API_PROLOG
     RopHandle outp = RopObjectT::getHandle(output);

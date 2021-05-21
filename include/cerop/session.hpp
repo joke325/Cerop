@@ -84,14 +84,14 @@ public:
         return op_verify_create(input, RopOutput(nullptr), signature);
     }
     String request_password(const RopKey& key, const char* context);
-    void load_keys(const InString& format, const RopInput& input, const bool pub = false, const bool sec = false);
+    void load_keys(const InString& format, const RopInput& input, const bool pub = true, const bool sec = true);
     inline void load_keys_public(const InString& format, const RopInput& input) {
         load_keys(format, input, true, false);
     }
     inline void load_keys_secret(const InString& format, const RopInput& input) {
         load_keys(format, input, false, true);
     }
-    void unload_keys(const bool pub = false, const bool sec = false);
+    void unload_keys(const bool pub = true, const bool sec = true);
     inline void unload_keys_public() {
         unload_keys(true, false);
     }
@@ -105,7 +105,7 @@ public:
     RopKey generate_key_25519(const InString& userid, const InString& password);
     RopKey generate_key_sm2(const InString& userid, const InString& password);
     RopKey generate_key_ex(const InString& keyAlg, const InString& subAlg, const uint32_t keyBits, const uint32_t subBits, const InString& keyCurve, const InString& subCurve, const InString& userid, const InString& password);
-    RopData import_keys(const RopInput& input, const bool pub = false, const bool sec = false, const bool perm = false);
+    RopData import_keys(const RopInput& input, const bool pub = true, const bool sec = true, const bool perm = false, bool sngl = false);
     inline RopData import_keys_public(const RopInput& input, const bool permissive = false) {
         return import_keys(input, true, false, permissive);
     }
@@ -117,7 +117,7 @@ public:
     void set_log_fd(const int fd);
     void set_key_provider(SessionKeyCallBack* getkeycb, void* getkeycbCtx);
     RopString import_signatures(const RopInput& input);
-    void save_keys(const InString& format, const RopOutput& output, const bool pub = false, const bool sec = false);
+    void save_keys(const InString& format, const RopOutput& output, const bool pub = true, const bool sec = true);
     inline void save_keys_public(const InString& format, const RopOutput& output) {
         save_keys(format, output, true, false);
     }
